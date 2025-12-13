@@ -1,0 +1,42 @@
+# ConfigMap для переменных окружения
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "muffin-wallet.fullname" . }}-env
+  labels:
+    {{- include "muffin-wallet.labels" . | nindent 4 }}
+data:
+  JDK_JAVA_OPTIONS: -Dspring.config.additional-location=/app/config/application.yaml
+
+---
+# ConfigMap для конфигурации приложения
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "muffin-wallet.fullname" . }}
+  labels:
+    {{- include "muffin-wallet.labels" . | nindent 4 }}
+data:
+  application.yaml: |
+    ---
+    server:
+      port: {{ .Values.app.port }}
+
+    spring:
+      datasource:
+        url: jdbc:postgresql://{{ .Values.database.host }}:{{ .Values.database.port }}/{{ .Values.database.name }}
+        username: {{ .Values.database.username }}
+
+    currency:
+      service:
+        url: {{ .Values.currency.service.url }}
+    management:
+      endpoints:
+        web:
+          exposure:
+            include: {{ .Values.management.endpoints.web.exposure.include }}
+      endpoint:
+        health:
+          probes:
+            enabled: true
+          show-details: always

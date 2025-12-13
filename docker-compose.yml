@@ -1,0 +1,13 @@
+services:
+  muffin_postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: muffin-wallet
+      POSTGRES_PASSWORD: muffin-wallet
+      POSTGRES_DB: muffin_wallet
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+volumes:
+  postgres_data:

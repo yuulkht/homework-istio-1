@@ -52,6 +52,7 @@ ingress:
   enabled: true
   className: "nginx"
   host: "muffin-wallet.com"
+  hostlog: "muffin-wallet-log.com"
   path: "/"
   pathType: Prefix
 

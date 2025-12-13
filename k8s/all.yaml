@@ -16,22 +16,22 @@ spec:
         app: muffin-currency
     spec:
       containers:
-      - name: muffin-currency
-        image: aadan1lov/muffin-currency:1.0.0
-        ports:
-        - containerPort: 8080
-        livenessProbe:
-          httpGet:
-            path: /rate?from=PLAIN&to=CHOKOLATE
-            port: 8080
-          initialDelaySeconds: 5
-          periodSeconds: 10
-        readinessProbe:
-          httpGet:
-            path: /rate?from=PLAIN&to=CHOKOLATE
-            port: 8080
-          initialDelaySeconds: 2
-          periodSeconds: 5
+        - name: muffin-currency
+          image: aadan1lov/muffin-currency:1.0.0
+          ports:
+            - containerPort: 8080
+          livenessProbe:
+            httpGet:
+              path: /rate?from=PLAIN&to=CHOKOLATE
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /rate?from=PLAIN&to=CHOKOLATE
+              port: 8080
+            initialDelaySeconds: 2
+            periodSeconds: 5
 ---
 apiVersion: v1
 kind: Service
@@ -59,6 +59,19 @@ spec:
       port: 80
       targetPort: 8081
 ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: muffin-wallet-log
+spec:
+  type: ClusterIP
+  selector:
+    app: muffin-wallet
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -79,7 +92,19 @@ spec:
         - name: application-config-volume
           configMap:
             name: muffin-wallet
+        - name: nginx-config-volume
+          configMap:
+            name: nginx-config
+        - name: log-volume
+          emptyDir: {}
       containers:
+        - name: nginx-log
+          image: nginx:1.29.3
+          volumeMounts:
+            - name: nginx-config-volume
+              mountPath: /etc/nginx
+            - name: log-volume
+              mountPath: /usr/share/nginx/html
         - name: muffin-wallet
           image: aadan1lov/muffin-wallet:1.1.0
           imagePullPolicy: Always
@@ -88,6 +113,8 @@ spec:
           volumeMounts:
             - name: application-config-volume
               mountPath: /app/config
+            - name: log-volume
+              mountPath: /logs
           envFrom:
             - secretRef:
                 name: muffin-wallet
@@ -139,7 +166,7 @@ data:
       datasource:
         url: jdbc:postgresql://host.minikube.internal:5432/muffin_wallet
         username: muffin-wallet
-
+    logging.file.name: /logs/app.log
     currency:
       service:
         url: http://muffin-currency:8083/rate
@@ -161,7 +188,17 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-    - host: muffin-wallet.com
+    - host: muffin-wallet-log.ru
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: muffin-wallet-log
+                port:
+                  number: 80
+    - host: muffin-wallet.ru
       http:
         paths:
           - path: /
@@ -171,3 +208,22 @@ spec:
                 name: muffin-wallet
                 port:
                   number: 80
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config
+data:
+  nginx.conf: |
+    events {
+    }
+
+    http {
+        server {
+            listen 80;
+            location /logs {
+                alias /usr/share/nginx/html;
+                autoindex on;
+            }
+        }
+    }

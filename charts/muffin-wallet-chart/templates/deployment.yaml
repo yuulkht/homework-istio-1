@@ -18,7 +18,19 @@ spec:
         - name: application-config-volume
           configMap:
             name: {{ include "muffin-wallet.fullname" . }}
+        - name: nginx-config-volume
+          configMap:
+            name: nginx-config
+        - name: log-volume
+          emptyDir: { }
       containers:
+        - name: nginx-log
+          image: nginx:1.29.3
+          volumeMounts:
+            - name: nginx-config-volume
+              mountPath: /etc/nginx
+            - name: log-volume
+              mountPath: /usr/share/nginx/html
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
@@ -29,6 +41,8 @@ spec:
           volumeMounts:
             - name: application-config-volume
               mountPath: /app/config
+            - name: log-volume
+              mountPath: /logs
           envFrom:
             - secretRef:
                 name: {{ include "muffin-wallet.fullname" . }}

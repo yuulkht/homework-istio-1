@@ -1,0 +1,14 @@
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: allow-only-wallet
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: muffin-currency
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            principals: ["cluster.local/ns/default/sa/muffin-wallet-sa"]

@@ -14,6 +14,7 @@ spec:
       labels:
         {{- include "muffin-wallet.selectorLabels" . | nindent 8 }}
     spec:
+      serviceAccountName: muffin-wallet-sa
       volumes:
         - name: application-config-volume
           configMap:

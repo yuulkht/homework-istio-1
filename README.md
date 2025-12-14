@@ -123,3 +123,11 @@ spec:
             port:
               number: 8083
 ```
+
+
+### Полезные команды
+Попасть внутрь контейнера приложения и исполнить запрос к currency
+```
+kubectl exec -it wallet-muffin-wallet-6f89874666-4vcpq -c muffin-wallet -- /bin/sh
+wget -S -O- "http://muffin-currency:8083/rate?from=PLAIN&to=CHOKOLATE"
+```

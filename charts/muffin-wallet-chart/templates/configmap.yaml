@@ -35,8 +35,24 @@ data:
         web:
           exposure:
             include: {{ .Values.management.endpoints.web.exposure.include }}
+          base-path: /actuator
       endpoint:
         health:
           probes:
             enabled: true
           show-details: always
+      metrics:
+        export:
+          prometheus:
+            enabled: true
+        distribution:
+          percentiles-histogram:
+            "[http.server.requests]": true
+        web:
+          server:
+            request:
+              autotime:
+                enabled: true
+      tracing:
+        sampling:
+          probability: 1.0

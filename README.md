@@ -131,3 +131,22 @@ spec:
 kubectl exec -it wallet-muffin-wallet-6f89874666-4vcpq -c muffin-wallet -- /bin/sh
 wget -S -O- "http://muffin-currency:8083/rate?from=PLAIN&to=CHOKOLATE"
 ```
+
+
+kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.28/samples/addons/prometheus.yaml
+kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.28/samples/addons/kiali.yaml
+kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.28/samples/addons/jaeger.yaml
+kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.28/samples/addons/grafana.yaml
+
+istioctl dashboard kiali
+http://localhost:20001/kiali/console/overview
+
+istioctl dashboard prometheus
+http://localhost:9090
+
+istio_requests_total
+
+istioctl dashboard grafana
+http://localhost:3000
+
+

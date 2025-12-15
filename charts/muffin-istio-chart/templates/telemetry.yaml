@@ -1,0 +1,19 @@
+apiVersion: telemetry.istio.io/v1
+kind: Telemetry
+metadata:
+  name: {{ .Values.telemetry.metrics.name }}
+  namespace: {{ .Values.global.namespace }}
+spec:
+  metrics:
+    {{- range .Values.telemetry.metrics.metrics }}
+    - providers:
+        {{- toYaml $.Values.telemetry.metrics.providers | nindent 8 }}
+      overrides:
+        - match:
+            metric: {{ .name }}
+            mode: {{ .mode }}
+          {{- if .tags }}
+          tagOverrides:
+            {{- toYaml .tags | nindent 12 }}
+          {{- end }}
+    {{- end }}

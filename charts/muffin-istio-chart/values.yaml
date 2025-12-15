@@ -1,0 +1,117 @@
+# Global values
+global:
+  namespace: default
+  clusterDomain: cluster.local
+
+# Service Account
+serviceAccount:
+  name: muffin-wallet-sa
+  create: true
+
+# Gateway configuration
+gateway:
+  name: wallet-gateway
+  selector:
+    istio: ingressgateway
+  hosts:
+    - muffin-wallet.com
+    - muffin-wallet-log.com
+  port:
+    number: 80
+    name: http
+    protocol: HTTP
+
+# External Service Entry
+serviceEntry:
+  name: external-postgres
+  host: host.minikube.internal
+  ports:
+    - number: 5432
+      name: postgres
+      protocol: TCP
+  location: MESH_EXTERNAL
+  resolution: DNS
+
+# mTLS configuration
+peerAuthentication:
+  name: mtls
+  mode: STRICT
+
+# Currency service configuration
+currency:
+  service: muffin-currency
+  port: 8083
+  maxConnections: 20
+  maxPendingRequests: 5
+  maxRequestsPerConnection: 5
+  maxRetries: 3
+  consecutive5xxErrors: 7
+  outlierDetection:
+    interval: 5s
+    baseEjectionTime: 15s
+    maxEjectionPercent: 100
+  retries:
+    attempts: 3
+    perTryTimeout: 2s
+    retryOn: connect-failure,refused-stream,unavailable,deadline-exceeded,resource-exhausted,5xx
+  timeout: 10s
+
+# Wallet services
+wallet:
+  main:
+    host: wallet-muffin-wallet
+    port: 80
+    domain: muffin-wallet.com
+  log:
+    host: wallet-muffin-wallet-log
+    port: 80
+    domain: muffin-wallet-log.com
+
+# Authorization Policy
+authorizationPolicy:
+  name: allow-only-wallet
+  selector:
+    matchLabels:
+      app: muffin-currency
+  action: ALLOW
+  sourcePrincipal: "cluster.local/ns/default/sa/muffin-wallet-sa"
+
+# Telemetry - Metrics
+telemetry:
+  metrics:
+    name: muffin-telemetry
+    providers:
+      - name: prometheus
+    metrics:
+      - name: REQUEST_COUNT
+        mode: CLIENT_AND_SERVER
+        tags:
+          request_protocol:
+            operation: UPSERT
+            value: "%PROTOCOL%"
+          app_name:
+            operation: UPSERT
+            value: "muffin-wallet"
+      - name: REQUEST_DURATION
+        mode: CLIENT_AND_SERVER
+      - name: REQUEST_SIZE
+        mode: CLIENT_AND_SERVER
+      - name: RESPONSE_SIZE
+        mode: CLIENT_AND_SERVER
+      - name: TCP_OPENED_CONNECTIONS
+        mode: CLIENT_AND_SERVER
+      - name: TCP_CLOSED_CONNECTIONS
+        mode: CLIENT_AND_SERVER
+  tracing:
+    name: muffin-tracing
+    providers:
+      - name: "jaeger"
+    randomSamplingPercentage: 100.0
+    customTags:
+      application:
+        literal:
+          value: "muffin-system"
+      environment:
+        environment:
+          name: "ENV"
+          defaultValue: "development"

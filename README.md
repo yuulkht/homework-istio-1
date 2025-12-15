@@ -12,6 +12,8 @@ kubectl label namespace default istio-injection=enabled # включить ин�
 ```
 ![установка](screenshots/1.png)
 
+minikube start --cpus=4 --memory=6g  --driver=docker
+
 ### 2. Создала helmfile.yaml
 ```
 releases:

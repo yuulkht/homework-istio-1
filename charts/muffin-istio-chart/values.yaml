@@ -75,3 +75,9 @@ authorizationPolicy:
       app: muffin-currency
   action: ALLOW
   sourcePrincipal: "cluster.local/ns/default/sa/muffin-wallet-sa"
+
+telemetry:
+  tracing:
+    name: mesh-default
+    namespace: istio-system
+    provider: jaeger

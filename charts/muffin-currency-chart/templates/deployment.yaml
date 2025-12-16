@@ -4,6 +4,7 @@ metadata:
   name: {{ .Values.app.name }}
   labels:
     app: {{ .Values.app.name }}
+    app.kubernetes.io/name: {{ .Chart.Name }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
